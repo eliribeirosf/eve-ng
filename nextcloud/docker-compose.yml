@@ -6,10 +6,10 @@ services:
     container_name: nextcloud-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD=MinhaSenhaRootAqui
-      MYSQL_DATABASE=nextcloud
-      MYSQL_USER=nextclouduser
-      MYSQL_PASSWORD=SenhaDoBancoAqui
+      MYSQL_ROOT_PASSWORD: MinhaSenhaRootAqui
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextclouduser
+      MYSQL_PASSWORD: SenhaDoBancoAqui
     volumes:
       - db_data:/var/lib/mysql
     networks:
@@ -31,11 +31,11 @@ services:
     ports:
       - "8080:80"
     environment:
-      MYSQL_HOST=db
-      MYSQL_DATABASE=nextcloud
-      MYSQL_USER=nextclouduser
-      MYSQL_PASSWORD=SenhaDoBancoAqui
-      REDIS_HOST=redis
+      MYSQL_HOST: db
+      MYSQL_DATABASE: nextcloud
+      MYSQL_USER: nextclouduser
+      MYSQL_PASSWORD: SenhaDoBancoAqui
+      REDIS_HOST: redis
     volumes:
       - nextcloud_data:/var/www/html
     depends_on:
