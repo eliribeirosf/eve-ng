@@ -1,20 +1,6 @@
 version: '3.8'
 
 services:
-  portainer:
-    image: portainer/portainer-ce:2.9.3
-    container_name: portainer
-    restart: unless-stopped
-    ports:
-      - "8000:8000"
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - nginx_proxy
-      - monitoring
-
   grafana:
     image: grafana/grafana-enterprise
     container_name: grafana
