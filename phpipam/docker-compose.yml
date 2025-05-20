@@ -5,10 +5,10 @@ networks:
     external: true
 
 services:
-  # 1) banco de dados do phpIPAM
-  phpipam-db:
+  # banco do phpIPAM
+  phpipam-mariadb:
     image: mariadb:latest
-    container_name: phpipam-db
+    container_name: phpipam-mariadb
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=my_secret_mysql_root_pass
@@ -20,44 +20,51 @@ services:
     networks:
       - proxy
 
-  # 2) interface web do phpIPAM (SEM mapeamento de porta)
+  # web interface do phpIPAM
   phpipam-web:
     image: phpipam/phpipam-www:latest
     container_name: phpipam-web
     restart: unless-stopped
     depends_on:
-      - phpipam-db
-    # expõe somente na rede interna, não no host
-    expose:
-      - "80"
+      - phpipam-mariadb
     environment:
       - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-db
+      - IPAM_DATABASE_HOST=phpipam-mariadb
       - IPAM_DATABASE_NAME=phpipam
       - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       - IPAM_DATABASE_WEBHOST=%
-      # telling nginx-proxy which hostname to listen
       - VIRTUAL_HOST=ipam.jotasti.com.br
+      - VIRTUAL_PORT=80
+    # expõe só internamente na rede 'proxy'
+    expose:
+      - "80"
+    volumes:
+      - phpipam-logo:/phpipam/css/images/logo
+      - phpipam-ca:/usr/local/share/ca-certificates:ro
     networks:
       - proxy
 
-  # 3) cron do phpIPAM (scanner)
+  # cron jobs do phpIPAM
   phpipam-cron:
     image: phpipam/phpipam-cron:latest
     container_name: phpipam-cron
     restart: unless-stopped
     depends_on:
-      - phpipam-db
+      - phpipam-mariadb
     environment:
       - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-db
+      - IPAM_DATABASE_HOST=phpipam-mariadb
       - IPAM_DATABASE_NAME=phpipam
       - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       - SCAN_INTERVAL=1h
+    volumes:
+      - phpipam-ca:/usr/local/share/ca-certificates:ro
     networks:
       - proxy
 
 volumes:
   phpipam-db-data:
+  phpipam-logo:
+  phpipam-ca:
