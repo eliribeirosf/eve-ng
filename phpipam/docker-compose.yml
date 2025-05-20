@@ -19,6 +19,8 @@ services:
   # Interface web do phpIPAM
   phpipam-web:
     image: phpipam/phpipam-www:latest
+    ports:
+      - "80:80"
     container_name: phpipam-web
     restart: unless-stopped
     depends_on:
