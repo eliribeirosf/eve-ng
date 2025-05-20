@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  serve-files:
+    image: nginx:alpine
+    container_name: serve-files
+    volumes:
+      - /home/ftpuser/files:/usr/share/nginx/html:ro
+    networks:
+      - proxy
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
+
