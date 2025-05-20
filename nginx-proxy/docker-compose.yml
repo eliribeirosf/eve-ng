@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     ports:
       - "81:81"    # painel
-      - "85:80"    # HTTP → 85
+      - "80:80"    # HTTP → 85
       - "443:443"  # HTTPS
     environment:
       DB_MYSQL_HOST: npm-db
