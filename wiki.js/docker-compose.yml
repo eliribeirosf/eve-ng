@@ -1,22 +1,25 @@
 version: '3.8'
 
+networks:
+  proxy:
+    external: true
+
 services:
   db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: wiki
-      POSTGRES_PASSWORD: wikijsrocks
       POSTGRES_USER: wikijs
-    logging:
-      driver: none
-    restart: unless-stopped
+      POSTGRES_PASSWORD: wikijsrocks
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - internal
+      - proxy
 
   wiki:
     image: ghcr.io/requarks/wiki:2
+    restart: unless-stopped
     depends_on:
       - db
     environment:
@@ -26,22 +29,12 @@ services:
       DB_USER: wikijs
       DB_PASS: wikijsrocks
       DB_NAME: wiki
-      # Exemplo de variáveis para nginx-proxy (se usar jwilder/nginx-proxy)
       VIRTUAL_HOST: wiki.jotasti.com.br
       VIRTUAL_PORT: 3000
-    restart: unless-stopped
-    ports:
-      - "85:3000"            # opcional, pode remover se for acessar só via proxy
+    expose:
+      - "3000"
     networks:
-      - internal
-      - nginx_proxy
+      - proxy
 
 volumes:
   db-data:
-
-networks:
-  internal:
-    driver: bridge
-
-  nginx_proxy:
-    external: true
