@@ -26,6 +26,16 @@ services:
     restart: unless-stopped
     ports:
       - "83:3000"
+networks:
+      - internal
+      - nginx_proxy
 
 volumes:
   db-data:
+
+  networks:
+    internal:
+      driver: bridge
+
+      nginx_proxy:
+      external: true
