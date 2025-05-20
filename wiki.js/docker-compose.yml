@@ -34,8 +34,5 @@ volumes:
   db-data:
 
   networks:
-    internal:
-      driver: bridge
-
       nginx_proxy:
       external: true
