@@ -27,7 +27,6 @@ services:
     ports:
       - "83:3000"
 networks:
-      - internal
       - nginx_proxy
 
 volumes:
