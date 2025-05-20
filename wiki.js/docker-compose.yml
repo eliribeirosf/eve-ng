@@ -31,7 +31,7 @@ services:
       VIRTUAL_PORT: 3000
     restart: unless-stopped
     ports:
-      - "83:3000"            # opcional, pode remover se for acessar só via proxy
+      - "85:3000"            # opcional, pode remover se for acessar só via proxy
     networks:
       - internal
       - nginx_proxy
