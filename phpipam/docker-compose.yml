@@ -1,47 +1,63 @@
-# WARNING: Replace the example passwords with secure secrets.
-# WARNING: 'my_secret_phpipam_pass' and 'my_secret_mysql_root_pass'
+version: '3.8'
 
-version: '3'
+networks:
+  proxy:
+    external: true
 
 services:
-  phpipam-web:
-    image: phpipam/phpipam-www:latest
-    ports:
-      - "80:80"
-    environment:
-      - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-mariadb
-      - IPAM_DATABASE_PASS=my_secret_phpipam_pass
-      - IPAM_DATABASE_WEBHOST=%
-    restart: unless-stopped
-    volumes:
-      - phpipam-logo:/phpipam/css/images/logo
-      - phpipam-ca:/usr/local/share/ca-certificates:ro
-    depends_on:
-      - phpipam-mariadb
-
-  phpipam-cron:
-    image: phpipam/phpipam-cron:latest
-    environment:
-      - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-mariadb
-      - IPAM_DATABASE_PASS=my_secret_phpipam_pass
-      - SCAN_INTERVAL=1h
-    restart: unless-stopped
-    volumes:
-      - phpipam-ca:/usr/local/share/ca-certificates:ro
-    depends_on:
-      - phpipam-mariadb
-
-  phpipam-mariadb:
+  # 1) banco de dados do phpIPAM
+  phpipam-db:
     image: mariadb:latest
+    container_name: phpipam-db
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=my_secret_mysql_root_pass
-    restart: unless-stopped
+      - MYSQL_DATABASE=phpipam
+      - MYSQL_USER=phpipam
+      - MYSQL_PASSWORD=my_secret_phpipam_pass
     volumes:
       - phpipam-db-data:/var/lib/mysql
+    networks:
+      - proxy
+
+  # 2) interface web do phpIPAM (SEM mapeamento de porta)
+  phpipam-web:
+    image: phpipam/phpipam-www:latest
+    container_name: phpipam-web
+    restart: unless-stopped
+    depends_on:
+      - phpipam-db
+    # expõe somente na rede interna, não no host
+    expose:
+      - "80"
+    environment:
+      - TZ=Europe/London
+      - IPAM_DATABASE_HOST=phpipam-db
+      - IPAM_DATABASE_NAME=phpipam
+      - IPAM_DATABASE_USER=phpipam
+      - IPAM_DATABASE_PASS=my_secret_phpipam_pass
+      - IPAM_DATABASE_WEBHOST=%
+      # telling nginx-proxy which hostname to listen
+      - VIRTUAL_HOST=ipam.jotasti.com.br
+    networks:
+      - proxy
+
+  # 3) cron do phpIPAM (scanner)
+  phpipam-cron:
+    image: phpipam/phpipam-cron:latest
+    container_name: phpipam-cron
+    restart: unless-stopped
+    depends_on:
+      - phpipam-db
+    environment:
+      - TZ=Europe/London
+      - IPAM_DATABASE_HOST=phpipam-db
+      - IPAM_DATABASE_NAME=phpipam
+      - IPAM_DATABASE_USER=phpipam
+      - IPAM_DATABASE_PASS=my_secret_phpipam_pass
+      - SCAN_INTERVAL=1h
+    networks:
+      - proxy
 
 volumes:
   phpipam-db-data:
-  phpipam-logo:
-  phpipam-ca:
