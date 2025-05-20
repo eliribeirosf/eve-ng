@@ -1,70 +1,47 @@
-version: '3.8'
+# WARNING: Replace the example passwords with secure secrets.
+# WARNING: 'my_secret_phpipam_pass' and 'my_secret_mysql_root_pass'
+
+version: '3'
 
 services:
-  # Banco de dados do phpIPAM
-  phpipam-mariadb:
-    image: mariadb:latest
-    container_name: phpipam-mariadb
-    restart: unless-stopped
-    environment:
-      - MYSQL_ROOT_PASSWORD=my_secret_mysql_root_pass
-      - MYSQL_DATABASE=phpipam
-      - MYSQL_USER=phpipam
-      - MYSQL_PASSWORD=my_secret_phpipam_pass
-    volumes:
-      - phpipam-db-data:/var/lib/mysql
-    networks:
-      - nginx_proxy
-
-  # Interface web do phpIPAM
   phpipam-web:
     image: phpipam/phpipam-www:latest
-    container_name: phpipam-web
-    restart: unless-stopped
-    depends_on:
-      - phpipam-mariadb
+    ports:
+      - "80:80"
     environment:
       - TZ=Europe/London
       - IPAM_DATABASE_HOST=phpipam-mariadb
-      - IPAM_DATABASE_NAME=phpipam
-      - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       - IPAM_DATABASE_WEBHOST=%
+    restart: unless-stopped
     volumes:
       - phpipam-logo:/phpipam/css/images/logo
       - phpipam-ca:/usr/local/share/ca-certificates:ro
-    networks:
-      - nginx_proxy
-    # opcional: alias DNS interno
-    # networks:
-    #   nginx_proxy:
-    #     aliases:
-    #       - ipam.jotasti.com.br
-
-  # Tarefas agendadas do phpIPAM (scanner, etc)
-  phpipam-cron:
-    image: phpipam/phpipam-cron:latest
-    container_name: phpipam-cron
-    restart: unless-stopped
     depends_on:
       - phpipam-mariadb
+
+  phpipam-cron:
+    image: phpipam/phpipam-cron:latest
     environment:
       - TZ=Europe/London
       - IPAM_DATABASE_HOST=phpipam-mariadb
-      - IPAM_DATABASE_NAME=phpipam
-      - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       - SCAN_INTERVAL=1h
+    restart: unless-stopped
     volumes:
       - phpipam-ca:/usr/local/share/ca-certificates:ro
-    networks:
-      - nginx_proxy
+    depends_on:
+      - phpipam-mariadb
+
+  phpipam-mariadb:
+    image: mariadb:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=my_secret_mysql_root_pass
+    restart: unless-stopped
+    volumes:
+      - phpipam-db-data:/var/lib/mysql
 
 volumes:
   phpipam-db-data:
   phpipam-logo:
   phpipam-ca:
-
-networks:
-  nginx_proxy:
-    external: true
