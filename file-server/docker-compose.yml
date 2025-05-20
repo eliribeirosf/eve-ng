@@ -5,7 +5,7 @@ services:
     image: nginx:alpine
     container_name: serve-files
     volumes:
-      - /root:/usr/share/nginx/html:ro
+      - /home/jotasti/drop:/usr/share/nginx/html:ro
     networks:
       - proxy
     restart: unless-stopped
