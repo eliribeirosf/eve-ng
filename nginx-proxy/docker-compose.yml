@@ -20,10 +20,9 @@ services:
     container_name: nginx-proxy-manager
     restart: unless-stopped
     ports:
-      - "443:443"
-      - "81:81"
-      - "85:80"
-      - "80:80"
+      - "81:81"    # painel
+      - "85:80"    # HTTP → 85
+      - "443:443"  # HTTPS
     environment:
       DB_MYSQL_HOST: npm-db
       DB_MYSQL_PORT: 3306
