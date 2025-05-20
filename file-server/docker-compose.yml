@@ -5,7 +5,7 @@ services:
     image: nginx:alpine
     container_name: serve-files
     volumes:
-      - /root/ftp_docs:/usr/share/nginx/html:ro
+      - /root/:/usr/share/nginx/html:ro
     networks:
       - proxy
     restart: unless-stopped
