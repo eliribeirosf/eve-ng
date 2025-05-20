@@ -1,0 +1,175 @@
+version: '3.8'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:2.9.3
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - nginx_proxy
+      - monitoring
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+
+  mysql-server:
+    image: mysql:8.0.30
+    container_name: mysql-server
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      MYSQL_ROOT_PASSWORD: zabbix
+    command:
+      - --character-set-server=utf8
+      - --collation-server=utf8_bin
+      - --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - monitoring
+
+  zabbix-java-gateway:
+    image: zabbix/zabbix-java-gateway
+    container_name: zabbix-java-gateway
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql
+    container_name: zabbix-server
+    restart: unless-stopped
+    depends_on:
+      - mysql-server
+      - zabbix-java-gateway
+    environment:
+      DB_SERVER_HOST: mysql-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      MYSQL_ROOT_PASSWORD: zabbix
+      ZBX_JAVAGATEWAY: zabbix-java-gateway
+    ports:
+      - "10051:10051"
+    networks:
+      - monitoring
+
+  zabbix-agent:
+    image: zabbix/zabbix-agent
+    container_name: zabbix-agent
+    restart: unless-stopped
+    depends_on:
+      - zabbix-server
+    environment:
+      ZBX_HOSTNAME: Zabbix_server
+      ZBX_SERVER_HOST: zabbix-server
+    ports:
+      - "10050:10050"
+    networks:
+      - monitoring
+
+  zabbix-web-nginx-mysql:
+    image: zabbix/zabbix-web-nginx-mysql
+    container_name: zabbix-web
+    restart: unless-stopped
+    depends_on:
+      - mysql-server
+    environment:
+      DB_SERVER_HOST: mysql-server
+      MYSQL_DATABASE: zabbix
+      MYSQL_USER: zabbix
+      MYSQL_PASSWORD: zabbix
+      MYSQL_ROOT_PASSWORD: zabbix
+      PHP_TZ: America/Sao_Paulo
+    ports:
+      - "80:8080"
+    networks:
+      - monitoring
+
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng
+    restart: unless-stopped
+    ports:
+      - "3005:3000"     # UI
+      - "6343:6343/udp"
+    volumes:
+      - ntopng_data:/var/lib/ntopng
+    environment:
+      - TZ=America/Sao_Paulo
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    network_mode: "host"
+    pid: "host"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+  snmp-exporter:
+    image: prom/snmp-exporter:latest
+    container_name: snmp-exporter
+    restart: unless-stopped
+    volumes:
+      - ./snmp_exporter/snmp.yml:/etc/snmp_exporter/snmp.yml:ro
+    ports:
+      - "9116:9116"
+    networks:
+      - monitoring
+
+networks:
+  nginx_proxy:
+    external: true
+  monitoring:
+    driver: bridge
+
+volumes:
+  portainer_data:
+  mysql_data:
+  ntopng_data:
+  prometheus_data:
+  alertmanager_data:
+
