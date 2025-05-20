@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  npm-db:
+    image: mariadb:10.5
+    container_name: npm-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootSenhaForte
+      MYSQL_DATABASE: npm
+      MYSQL_USER: npm
+      MYSQL_PASSWORD: senhaNpm123
+    volumes:
+      - npm_db:/var/lib/mysql
+    networks:
+      - nginx_proxy
+
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    environment:
+      DB_MYSQL_HOST: npm-db
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: npm
+      DB_MYSQL_PASSWORD: senhaNpm123
+      DB_MYSQL_NAME: npm
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - nginx_proxy
+
+volumes:
+  npm_db:
+  npm_data:
+  npm_letsencrypt:
+
+networks:
+  nginx_proxy:
+    external: true
