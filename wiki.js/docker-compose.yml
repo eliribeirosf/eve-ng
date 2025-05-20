@@ -1,5 +1,6 @@
-services:
+version: '3.8'
 
+services:
   db:
     image: postgres:15-alpine
     environment:
@@ -11,6 +12,8 @@ services:
     restart: unless-stopped
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - internal
 
   wiki:
     image: ghcr.io/requarks/wiki:2
@@ -23,15 +26,22 @@ services:
       DB_USER: wikijs
       DB_PASS: wikijsrocks
       DB_NAME: wiki
+      # Exemplo de variáveis para nginx-proxy (se usar jwilder/nginx-proxy)
+      VIRTUAL_HOST: wiki.seu-dominio.com
+      VIRTUAL_PORT: 3000
     restart: unless-stopped
     ports:
-      - "83:3000"
-networks:
+      - "83:3000"            # opcional, pode remover se for acessar só via proxy
+    networks:
+      - internal
       - nginx_proxy
 
 volumes:
   db-data:
 
-  networks:
-      nginx_proxy:
-      external: true
+networks:
+  internal:
+    driver: bridge
+
+  nginx_proxy:
+    external: true
