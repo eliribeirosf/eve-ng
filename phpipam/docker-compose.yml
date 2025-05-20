@@ -20,7 +20,6 @@ services:
     depends_on:
       - phpipam-mariadb
     networks:
-      - nextcloudnet
       - nginx_proxy
 
   phpipam-cron:
@@ -35,6 +34,9 @@ services:
       - phpipam-ca:/usr/local/share/ca-certificates:ro
     depends_on:
       - phpipam-mariadb
+    networks:
+      - nginx_proxy
+
 
   phpipam-mariadb:
     image: mariadb:latest
@@ -43,6 +45,9 @@ services:
     restart: unless-stopped
     volumes:
       - phpipam-db-data:/var/lib/mysql
+  networks:
+      - nginx_proxy
+
 
 volumes:
   phpipam-db-data:
