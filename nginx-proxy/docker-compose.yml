@@ -1,19 +1,45 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
-  # 1) Proxy automático: observa o Docker e faz proxy com base em VIRTUAL_HOST
-  nginx-proxy:
-    image: nginxproxy/nginx-proxy:1.7
-    container_name: nginx-proxy
+  npm-db:
+    image: mariadb:10.5
+    container_name: npm-db
     restart: unless-stopped
-    ports:
-      - "80:80"                 # HTTP-01 challenge e tráfego HTTP
+    environment:
+      MYSQL_ROOT_PASSWORD: rootSenhaForte
+      MYSQL_DATABASE: npm
+      MYSQL_USER: npm
+      MYSQL_PASSWORD: senhaNpm123
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - npm_db:/var/lib/mysql
     networks:
       - proxy
 
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    environment:
+      DB_MYSQL_HOST: npm-db
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: npm
+      DB_MYSQL_PASSWORD: senhaNpm123
+      DB_MYSQL_NAME: npm
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+
+volumes:
+  npm_db:
+  npm_data:
+  npm_letsencrypt:
+
 networks:
   proxy:
-    driver: bridge
+    external: true
