@@ -22,6 +22,7 @@ services:
     ports:
       - "443:443"
       - "81:81"
+      - "83:3000"
     environment:
       DB_MYSQL_HOST: npm-db
       DB_MYSQL_PORT: 3306
