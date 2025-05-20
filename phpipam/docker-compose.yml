@@ -5,10 +5,10 @@ networks:
     external: true
 
 services:
-  # banco do phpIPAM
-  phpipam-mariadb:
+  # 1) Banco de dados do phpIPAM
+  phpipam-db:
     image: mariadb:latest
-    container_name: phpipam-mariadb
+    container_name: phpipam-db
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=my_secret_mysql_root_pass
@@ -20,23 +20,24 @@ services:
     networks:
       - proxy
 
-  # web interface do phpIPAM
+  # 2) Web do phpIPAM
   phpipam-web:
     image: phpipam/phpipam-www:latest
     container_name: phpipam-web
     restart: unless-stopped
     depends_on:
-      - phpipam-mariadb
+      - phpipam-db
     environment:
       - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_HOST=phpipam-db
       - IPAM_DATABASE_NAME=phpipam
       - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
-      - IPAM_DATABASE_WEBHOST=%
+      - IPAM_DATABASE_WEBHOST=% 
+      # para o jwilder/nginx-proxy
       - VIRTUAL_HOST=ipam.jotasti.com.br
       - VIRTUAL_PORT=80
-    # expõe só internamente na rede 'proxy'
+    # expõe só internamente
     expose:
       - "80"
     volumes:
@@ -45,16 +46,16 @@ services:
     networks:
       - proxy
 
-  # cron jobs do phpIPAM
+  # 3) Cron do phpIPAM
   phpipam-cron:
     image: phpipam/phpipam-cron:latest
     container_name: phpipam-cron
     restart: unless-stopped
     depends_on:
-      - phpipam-mariadb
+      - phpipam-db
     environment:
       - TZ=Europe/London
-      - IPAM_DATABASE_HOST=phpipam-mariadb
+      - IPAM_DATABASE_HOST=phpipam-db
       - IPAM_DATABASE_NAME=phpipam
       - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
