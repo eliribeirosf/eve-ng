@@ -27,7 +27,7 @@ services:
       DB_PASS: wikijsrocks
       DB_NAME: wiki
       # Exemplo de variáveis para nginx-proxy (se usar jwilder/nginx-proxy)
-      VIRTUAL_HOST: wiki.seu-dominio.com
+      VIRTUAL_HOST: wiki.jotasti.com.br
       VIRTUAL_PORT: 3000
     restart: unless-stopped
     ports:
