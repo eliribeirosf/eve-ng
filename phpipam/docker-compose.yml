@@ -36,7 +36,7 @@ services:
       - IPAM_DATABASE_USER=phpipam
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       # após concluir a instalação, descomente a linha abaixo:
-      # - IPAM_DISABLE_INSTALLER=1
+       - IPAM_DISABLE_INSTALLER=1
       - VIRTUAL_HOST=phpipam.jotasti.com.br
       - VIRTUAL_PORT=80
       - VIRTUAL_NETWORK=proxy    # para o NPM saber em qual rede procurar
