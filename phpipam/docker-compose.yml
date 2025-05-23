@@ -37,6 +37,7 @@ services:
       - IPAM_DATABASE_PASS=my_secret_phpipam_pass
       - IPAM_DATABASE_WEBHOST=%
       - VIRTUAL_HOST=ipam.jotasti.com.br
+      - IPAM_DISABLE_INSTALLER=1
       - VIRTUAL_PORT=80
     volumes:
       - phpipam-logo:/phpipam/css/images/logo
